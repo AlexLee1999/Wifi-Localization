@@ -22,7 +22,7 @@ if __name__ == "__main__":
     k_mod = [] 
     sig_org = []
     sig_mod = []
-    partition = 2
+    partition = 10
     # Distance: 0.5
     dis = 0.5
     d = [-21, -21, -23, -22, -23, -22, -22, -23, -22, -22, -19, -18, -19, -21, -21, -19, -21, -21, -22, -27, -27, -21, -21, -19, -19, -21, -21, -22, -21, -21, -21, -22]
@@ -123,4 +123,4 @@ if __name__ == "__main__":
     plt.plot(t2, rssi_func(sum(k_mod) / len(k_mod), t2), 'r')
     plt.scatter(x=dis_lst, y=sig_org)
     plt.scatter(x=dis_lst, y=sig_mod)
-    plt.savefig('plot.png')
+    plt.savefig('rssi_dis.png')
