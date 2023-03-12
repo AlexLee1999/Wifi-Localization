@@ -39,19 +39,24 @@ if __name__ == "__main__":
             for row in reader:
                 data.append(eval(row[0]))
         dic[f] = data
-    # print(dic)
-    dis_error_org = {}
-    error_org = []
-    error_mod = []
-    error_org_acc = []
-    error_mod_acc = []
-    dis_error_mod = {}
+    
+    
+    error_lst_org = []
+    error_lst_mod = []
+    error_lst_with_acc_org = []
+    error_lst_with_acc_mod = []
+    distance_error_dic_org = {}
+    distance_error_dic_mod = {}
+    distance_error_dic_with_acc_org = {}
+    distance_error_dic_with_acc_mod = {}
+    
+    
     dis_acc = {
         '0.804': 0.82, 
         '0.842': 0.84, 
         '0.923': 0.91, 
-        '1.20': 1.21, 
         '1.182': 1.21, 
+        '1.20': 1.21, 
         '1.225': 1.23, 
         '1.57': 1.58, 
         '1.578': 1.56, 
@@ -76,8 +81,8 @@ if __name__ == "__main__":
         '0.804': 1.14, 
         '0.842': 1.07, 
         '0.923': 1.32, 
-        '1.20': 1.35, 
         '1.182': 1.08, 
+        '1.20': 1.35, 
         '1.225': 1.23, 
         '1.57': 1.17, 
         '1.578': 1.42, 
@@ -101,9 +106,9 @@ if __name__ == "__main__":
     init_pos = {
         '0.804': 0.5, 
         '0.842': 0.5, 
-        '0.923': 0.5, 
+        '0.923': 0.5,  
+        '1.182': 0.85,
         '1.20': 0.85, 
-        '1.182': 0.85, 
         '1.225': 0.85, 
         '1.57': 1.2, 
         '1.578': 1.2, 
@@ -128,8 +133,8 @@ if __name__ == "__main__":
         '0.804': 30, 
         '0.842': 29, 
         '0.923': 31, 
+        '1.182': 32,
         '1.20': 28, 
-        '1.182': 32, 
         '1.225': 30, 
         '1.57': 33, 
         '1.578': 31, 
@@ -151,46 +156,75 @@ if __name__ == "__main__":
         '3.941': 32
     }
     for dist in dic:
-        sig = dic[dist]
-        sig.sort(reverse=True)
-        sig_mod = sig[:len(sig) // partition]
-        estimate_org = rssi_to_dis(k_org, sum(sig) / len(sig))
-        estimate_mod = rssi_to_dis(k_mod, sum(sig_mod) / len(sig_mod))
-        acc_org = (estimate_org + dis_acc[dist]) / 2
-        acc_mod = (estimate_mod + dis_acc[dist]) / 2
-        dis_error_mod[dist] = abs(estimate_mod - eval(dist))
-        error_mod.append(abs(estimate_mod - eval(dist)))
-        error_mod_acc.append(abs(acc_mod - eval(dist)))
-        dis_error_org[dist] = abs(estimate_org - eval(dist))
-        error_org.append(abs(estimate_org - eval(dist)))
-        error_org_acc.append(abs(acc_org - eval(dist)))
+        signal_lst_org = dic[dist]
+        signal_lst_org.sort(reverse=True)
+        signal_lst_mod = signal_lst_org[:len(signal_lst_org) // partition]
+        estimate_distance_value_org = rssi_to_dis(k_org, sum(signal_lst_org) / len(signal_lst_org))
+        estimate_distance_value_mod = rssi_to_dis(k_mod, sum(signal_lst_mod) / len(signal_lst_mod))
+        estimate_distance_value_with_acc_org = (estimate_distance_value_org + dis_acc[dist]) / 2
+        estimate_distance_value_with_acc_mod = (estimate_distance_value_mod + dis_acc[dist]) / 2
+        distance_error_dic_mod[dist] = abs(estimate_distance_value_mod - eval(dist))
+        error_lst_mod.append(abs(estimate_distance_value_mod - eval(dist)))
+        error_lst_with_acc_mod.append(abs(estimate_distance_value_with_acc_mod - eval(dist)))
+        distance_error_dic_org[dist] = abs(estimate_distance_value_org - eval(dist))
+        error_lst_org.append(abs(estimate_distance_value_org - eval(dist)))
+        error_lst_with_acc_org.append(abs(estimate_distance_value_with_acc_org - eval(dist)))
+        distance_error_dic_with_acc_org[dist] = abs(estimate_distance_value_with_acc_org - eval(dist))
+        distance_error_dic_with_acc_mod[dist] = abs(estimate_distance_value_with_acc_mod - eval(dist))
         max_pos = init_pos[dist] + max_speed[dist] * time_slots[dist] * 0.02
-        print(init_pos[dist], dist, max_pos)
         max_rssi = rssi_func(k_org, init_pos[dist])
         min_rssi = rssi_func(k_org, max_pos)
         bound_org = []
-        for rssi in sig:
+        for rssi in signal_lst_org:
             if rssi >= min_rssi and rssi <= max_rssi:
                 bound_org.append(rssi)
         max_rssi_mod = rssi_func(k_mod, init_pos[dist])
         min_rssi_mod = rssi_func(k_mod, max_pos)
         bound_mod = []
-        for rssi in sig_mod:
+        for rssi in signal_lst_mod:
             if rssi >= min_rssi_mod and rssi <= max_rssi_mod:
                 bound_mod.append(rssi)
-        # print(f"Location : {dist}, Bounded len: {len(bound_mod)}, Original len: {len(sig_mod)}, Error: {dis_error_mod[dist]}")
-        # print(f"Location : {dist}, Bounded len: {len(bound_org)}, Original len: {len(sig)}, Error: {dis_error_org[dist]}")
+        print(f"Location : {eval(dist):.3f}, Bounded len: {len(bound_mod)}, Original len: {len(signal_lst_mod)}, Estimate Pos: {estimate_distance_value_mod:.3f}, Error: {distance_error_dic_mod[dist]:.3f}")
+        print(f"Location : {eval(dist):.3f}, Bounded len: {len(bound_org)}, Original len: {len(signal_lst_org)}, Estimate Pos: {estimate_distance_value_org:.3f}, Error: {distance_error_dic_org[dist]:.3f}")
         
-    error_mod.sort()
-    error_org.sort()
-    error_mod_acc.sort()
-    error_org_acc.sort()
-    cdf_lst = [x / (len(error_org)) for x in range(1, len(error_org) + 1)]
+    error_lst_mod.sort()
+    error_lst_org.sort()
+    error_lst_with_acc_mod.sort()
+    error_lst_with_acc_org.sort()
+    cdf_lst = [x / (len(error_lst_org)) for x in range(1, len(error_lst_org) + 1)]
+    dis_list = [eval(x) for x in dis_acc.keys()]
+    error_dis_lst_org = [distance_error_dic_org[x] for x in dis_acc.keys()]
+    error_dis_lst_mod = [distance_error_dic_mod[x] for x in dis_acc.keys()]
+    error_dis_lst_with_acc_org = [distance_error_dic_with_acc_org[x] for x in dis_acc.keys()]
+    error_dis_lst_with_acc_mod = [distance_error_dic_with_acc_mod[x] for x in dis_acc.keys()]
+    print(error_dis_lst_org)
+    print(error_dis_lst_mod)
     plt.figure()
-    plt.plot(error_org, cdf_lst, label='Base')
-    plt.plot(error_mod, cdf_lst, label='50%')
-    plt.plot(error_org_acc, cdf_lst, label='Base + acc')
-    plt.plot(error_mod_acc, cdf_lst, label='50% + acc')
+    plt.scatter(x=dis_list, y=error_dis_lst_org, label='Base')
+    plt.scatter(x=dis_list, y=error_dis_lst_mod, label='50%')
+    plt.xlabel('Distance (m)')
+    plt.ylabel('Error (m)')
+    plt.legend(loc="best")
+    plt.savefig('error_dis.png')
+    
+    
+    plt.figure()
+    plt.scatter(x=dis_list, y=error_dis_lst_org, label='Base')
+    plt.scatter(x=dis_list, y=error_dis_lst_mod, label='50%')
+    plt.scatter(x=dis_list, y=error_dis_lst_with_acc_org, label='Base + acc')
+    plt.scatter(x=dis_list, y=error_dis_lst_with_acc_mod, label='50% + acc')
+    plt.xlabel('Distance (m)')
+    plt.ylabel('Error (m)')
+    plt.legend(loc="best")
+    plt.savefig('error_dis_with_acc.png')
+    
+    plt.figure()
+    plt.plot(error_lst_org, cdf_lst, label='Base')
+    plt.plot(error_lst_mod, cdf_lst, label='50%')
+    plt.plot(error_lst_with_acc_org, cdf_lst, label='Base + acc')
+    plt.plot(error_lst_with_acc_mod, cdf_lst, label='50% + acc')
+    plt.xlabel('Error (m)')
+    plt.ylabel('CDF')
     plt.legend(loc="best")
     plt.savefig('cdf.png')
         

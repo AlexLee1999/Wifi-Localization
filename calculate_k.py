@@ -119,8 +119,11 @@ if __name__ == "__main__":
     
     t2 = np.arange(0.1, 4.0, 0.02)
     plt.figure()
-    plt.plot(t2, rssi_func(sum(k_org) / len(k_org), t2), 'k')
-    plt.plot(t2, rssi_func(sum(k_mod) / len(k_mod), t2), 'r')
+    plt.plot(t2, rssi_func(sum(k_org) / len(k_org), t2), 'k', label='Base')
+    plt.plot(t2, rssi_func(sum(k_mod) / len(k_mod), t2), 'r', label='50%')
     plt.scatter(x=dis_lst, y=sig_org)
     plt.scatter(x=dis_lst, y=sig_mod)
+    plt.xlabel('Distance (m)')
+    plt.ylabel('RSSI (dbm)')
+    plt.legend(loc="best")
     plt.savefig('rssi_dis.png')
