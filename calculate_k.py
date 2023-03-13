@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from const import *
 
 def to_dbm(watt):
     return 10 * np.log10(watt) + 30
@@ -118,12 +119,17 @@ if __name__ == "__main__":
     dis_lst = [0.5, 0.85, 1.2, 1.6, 2.0, 2.4, 3.0, 3.5]
     
     t2 = np.arange(0.1, 4.0, 0.02)
-    plt.figure()
-    plt.plot(t2, rssi_func(sum(k_org) / len(k_org), t2), 'k', label='Base')
-    plt.plot(t2, rssi_func(sum(k_mod) / len(k_mod), t2), 'r', label='50%')
-    plt.scatter(x=dis_lst, y=sig_org)
-    plt.scatter(x=dis_lst, y=sig_mod)
-    plt.xlabel('Distance (m)')
-    plt.ylabel('RSSI (dbm)')
-    plt.legend(loc="best")
+    plt.figure(figsize=FIG_SIZE, dpi=DPI)
+    plt.plot(t2, rssi_func(sum(k_org) / len(k_org), t2), 'k', label='Base', linewidth=LINE_WIDTH)
+    plt.plot(t2, rssi_func(sum(k_mod) / len(k_mod), t2), 'r', label='50%', linewidth=LINE_WIDTH)
+    plt.scatter(x=dis_lst, y=sig_org, marker='>', label='Base', s=MARKER_SIZE)
+    plt.scatter(x=dis_lst, y=sig_mod, marker='o', label='50%', s=MARKER_SIZE)
+    plt.grid()
+    plt.xlabel('Distance (m)', fontsize=LABEL_FONT_SIZE)
+    plt.ylabel('RSSI (dbm)', fontsize=LABEL_FONT_SIZE)
+    plt.xlim((0, 4))
+    plt.legend(loc="best", fontsize=LEGEND_FONT_SIZE)
+    plt.xticks(fontsize=TICKS_FONT_SIZE)
+    plt.yticks(fontsize=TICKS_FONT_SIZE)
     plt.savefig('rssi_dis.png')
+    plt.savefig('rssi_dis.pdf')

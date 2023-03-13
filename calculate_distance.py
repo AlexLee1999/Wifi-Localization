@@ -3,7 +3,7 @@ import csv
 import numpy as np
 import matplotlib.pyplot as plt
 import math
-
+from const import * 
 
 def to_dbm(watt):
     return 10 * np.log10(watt) + 30
@@ -191,40 +191,60 @@ if __name__ == "__main__":
     error_lst_org.sort()
     error_lst_with_acc_mod.sort()
     error_lst_with_acc_org.sort()
-    cdf_lst = [x / (len(error_lst_org)) for x in range(1, len(error_lst_org) + 1)]
+    cdf_lst = [x / (len(error_lst_org)) for x in range(len(error_lst_org) + 1)]
     dis_list = [eval(x) for x in dis_acc.keys()]
     error_dis_lst_org = [distance_error_dic_org[x] for x in dis_acc.keys()]
     error_dis_lst_mod = [distance_error_dic_mod[x] for x in dis_acc.keys()]
     error_dis_lst_with_acc_org = [distance_error_dic_with_acc_org[x] for x in dis_acc.keys()]
     error_dis_lst_with_acc_mod = [distance_error_dic_with_acc_mod[x] for x in dis_acc.keys()]
+    error_lst_org.insert(0, 0)
+    error_lst_mod.insert(0, 0)
+    error_lst_with_acc_org.insert(0, 0)
+    error_lst_with_acc_mod.insert(0, 0)
     print(error_dis_lst_org)
     print(error_dis_lst_mod)
-    plt.figure()
-    plt.scatter(x=dis_list, y=error_dis_lst_org, label='Base')
-    plt.scatter(x=dis_list, y=error_dis_lst_mod, label='50%')
-    plt.xlabel('Distance (m)')
-    plt.ylabel('Error (m)')
-    plt.legend(loc="best")
+    plt.figure(figsize=FIG_SIZE, dpi=DPI)
+    plt.scatter(x=dis_list, y=error_dis_lst_org, label='Base', marker='>', s=MARKER_SIZE)
+    plt.scatter(x=dis_list, y=error_dis_lst_mod, label='50%', marker='o', s=MARKER_SIZE)
+    plt.xlabel('Distance (m)', fontsize=LEGEND_FONT_SIZE)
+    plt.ylabel('Error (m)', fontsize=LEGEND_FONT_SIZE)
+    plt.grid()
+    plt.ylim(bottom=0)
+    plt.legend(loc="best", fontsize=LEGEND_FONT_SIZE)
+    plt.xticks(fontsize=TICKS_FONT_SIZE)
+    plt.yticks(fontsize=TICKS_FONT_SIZE)
     plt.savefig('error_dis.png')
+    plt.savefig('error_dis.pdf')
     
     
-    plt.figure()
-    plt.scatter(x=dis_list, y=error_dis_lst_org, label='Base')
-    plt.scatter(x=dis_list, y=error_dis_lst_mod, label='50%')
-    plt.scatter(x=dis_list, y=error_dis_lst_with_acc_org, label='Base + acc')
-    plt.scatter(x=dis_list, y=error_dis_lst_with_acc_mod, label='50% + acc')
-    plt.xlabel('Distance (m)')
-    plt.ylabel('Error (m)')
-    plt.legend(loc="best")
+    plt.figure(figsize=FIG_SIZE, dpi=DPI)
+    plt.scatter(x=dis_list, y=error_dis_lst_org, label='Base', marker='>', s=MARKER_SIZE)
+    plt.scatter(x=dis_list, y=error_dis_lst_mod, label='50%', marker='o', s=MARKER_SIZE)
+    plt.scatter(x=dis_list, y=error_dis_lst_with_acc_org, label='Base + acc', marker='s', s=MARKER_SIZE)
+    plt.scatter(x=dis_list, y=error_dis_lst_with_acc_mod, label='50% + acc', marker='8', s=MARKER_SIZE)
+    plt.xlabel('Distance (m)', fontsize=LEGEND_FONT_SIZE)
+    plt.ylabel('Error (m)', fontsize=LEGEND_FONT_SIZE)
+    plt.grid()
+    plt.ylim(bottom=0)
+    plt.legend(loc="best", fontsize=LEGEND_FONT_SIZE)
+    plt.xticks(fontsize=TICKS_FONT_SIZE)
+    plt.yticks(fontsize=TICKS_FONT_SIZE)
     plt.savefig('error_dis_with_acc.png')
+    plt.savefig('error_dis_with_acc.pdf')
     
-    plt.figure()
-    plt.plot(error_lst_org, cdf_lst, label='Base')
-    plt.plot(error_lst_mod, cdf_lst, label='50%')
-    plt.plot(error_lst_with_acc_org, cdf_lst, label='Base + acc')
-    plt.plot(error_lst_with_acc_mod, cdf_lst, label='50% + acc')
-    plt.xlabel('Error (m)')
-    plt.ylabel('CDF')
-    plt.legend(loc="best")
+    plt.figure(figsize=FIG_SIZE, dpi=DPI)
+    plt.plot(error_lst_org, cdf_lst, label='Base', linewidth=LINE_WIDTH)
+    plt.plot(error_lst_mod, cdf_lst, label='50%', linewidth=LINE_WIDTH)
+    plt.plot(error_lst_with_acc_org, cdf_lst, label='Base + acc', linewidth=LINE_WIDTH)
+    plt.plot(error_lst_with_acc_mod, cdf_lst, label='50% + acc', linewidth=LINE_WIDTH)
+    plt.xlabel('Error (m)', fontsize=LEGEND_FONT_SIZE)
+    plt.ylabel('CDF', fontsize=LEGEND_FONT_SIZE)
+    plt.grid()
+    plt.ylim((0, 1))
+    plt.xlim((0, 4))
+    plt.legend(loc="best", fontsize=LEGEND_FONT_SIZE)
+    plt.xticks(fontsize=TICKS_FONT_SIZE)
+    plt.yticks(fontsize=TICKS_FONT_SIZE)
     plt.savefig('cdf.png')
+    plt.savefig('cdf.pdf')
         
