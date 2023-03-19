@@ -184,8 +184,8 @@ if __name__ == "__main__":
         for rssi in signal_lst_mod:
             if rssi >= min_rssi_mod and rssi <= max_rssi_mod:
                 bound_mod.append(rssi)
-        print(f"Location : {eval(dist):.3f}, Bounded len: {len(bound_mod)}, Original len: {len(signal_lst_mod)}, Estimate Pos: {estimate_distance_value_mod:.3f}, Error: {distance_error_dic_mod[dist]:.3f}")
-        print(f"Location : {eval(dist):.3f}, Bounded len: {len(bound_org)}, Original len: {len(signal_lst_org)}, Estimate Pos: {estimate_distance_value_org:.3f}, Error: {distance_error_dic_org[dist]:.3f}")
+        print(f"Location : {eval(dist):.3f}, Bounded len: {len(bound_mod)}, Original len: {len(signal_lst_mod)}, Estimate Pos: {estimate_distance_value_mod:.3f}, Error: {distance_error_dic_mod[dist]:.3f}, Max: {max_rssi_mod}, Min: {min_rssi_mod}")
+        print(f"Location : {eval(dist):.3f}, Bounded len: {len(bound_org)}, Original len: {len(signal_lst_org)}, Estimate Pos: {estimate_distance_value_org:.3f}, Error: {distance_error_dic_org[dist]:.3f}, Max: {max_rssi}, Min: {min_rssi}")
         
     error_lst_mod.sort()
     error_lst_org.sort()
