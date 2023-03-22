@@ -24,12 +24,22 @@ def rssi_to_dis(k, signal):
     signal = to_watt(signal)
     dis = math.sqrt(k / signal)
     return dis
-    
+
+def OLS_func(a, c, dis):
+    return a * np.log10(dis) + c
+
+def rssi_to_dis_OLS(a, c, sig):
+    return 10 ** ((sig - c) / a)
+
 if __name__ == "__main__":
     dir = os.listdir('./data/RSSI')
     dic = {}
     k_org = 1.4858080060144432e-06
     k_mod = 1.878343380171123e-06
+    a_org = -22.6658
+    c_org = -28.7088
+    a_mod = -22.7634
+    c_mod = -27.6760
     partition = 2
     for f in dir:
         f_path = './data/RSSI/' + f
@@ -43,12 +53,21 @@ if __name__ == "__main__":
     
     error_lst_org = []
     error_lst_mod = []
+    error_lst_OLS_org = []
+    error_lst_OLS_mod = []
     error_lst_with_acc_org = []
     error_lst_with_acc_mod = []
+    error_lst_with_acc_OLS_org = []
+    error_lst_with_acc_OLS_mod = []
+    error_lst_with_only_acc = []
     distance_error_dic_org = {}
     distance_error_dic_mod = {}
     distance_error_dic_with_acc_org = {}
     distance_error_dic_with_acc_mod = {}
+    distance_error_dic_OLS_org = {}
+    distance_error_dic_OLS_mod = {}
+    distance_error_dic_with_acc_OLS_org = {}
+    distance_error_dic_with_acc_OLS_mod = {}
     
     
     dis_acc = {
@@ -159,27 +178,52 @@ if __name__ == "__main__":
         signal_lst_org = dic[dist]
         signal_lst_org.sort(reverse=True)
         signal_lst_mod = signal_lst_org[:len(signal_lst_org) // partition]
+        
+        
         estimate_distance_value_org = rssi_to_dis(k_org, sum(signal_lst_org) / len(signal_lst_org))
         estimate_distance_value_mod = rssi_to_dis(k_mod, sum(signal_lst_mod) / len(signal_lst_mod))
         estimate_distance_value_with_acc_org = (estimate_distance_value_org + dis_acc[dist]) / 2
         estimate_distance_value_with_acc_mod = (estimate_distance_value_mod + dis_acc[dist]) / 2
+        
+        estimate_distance_value_OLS_org = rssi_to_dis_OLS(a_org, c_org, sum(signal_lst_org) / len(signal_lst_org))
+        estimate_distance_value_OLS_mod = rssi_to_dis_OLS(a_mod, c_mod, sum(signal_lst_mod) / len(signal_lst_mod))
+        estimate_distance_value_with_acc_OLS_org = (estimate_distance_value_OLS_org + dis_acc[dist]) / 2
+        estimate_distance_value_with_acc_OLS_mod = (estimate_distance_value_OLS_mod + dis_acc[dist]) / 2
+        
         distance_error_dic_mod[dist] = abs(estimate_distance_value_mod - eval(dist))
         error_lst_mod.append(abs(estimate_distance_value_mod - eval(dist)))
         error_lst_with_acc_mod.append(abs(estimate_distance_value_with_acc_mod - eval(dist)))
         distance_error_dic_org[dist] = abs(estimate_distance_value_org - eval(dist))
         error_lst_org.append(abs(estimate_distance_value_org - eval(dist)))
         error_lst_with_acc_org.append(abs(estimate_distance_value_with_acc_org - eval(dist)))
+        
+        
+        distance_error_dic_OLS_mod[dist] = abs(estimate_distance_value_OLS_mod - eval(dist))
+        error_lst_OLS_mod.append(abs(estimate_distance_value_OLS_mod - eval(dist)))
+        error_lst_with_acc_OLS_mod.append(abs(estimate_distance_value_with_acc_OLS_mod - eval(dist)))
+        distance_error_dic_OLS_org[dist] = abs(estimate_distance_value_OLS_org - eval(dist))
+        error_lst_OLS_org.append(abs(estimate_distance_value_OLS_org - eval(dist)))
+        error_lst_with_acc_OLS_org.append(abs(estimate_distance_value_with_acc_OLS_org - eval(dist)))
+        
+        error_lst_with_only_acc.append(abs(dis_acc[dist] - eval(dist)))
+        
         distance_error_dic_with_acc_org[dist] = abs(estimate_distance_value_with_acc_org - eval(dist))
         distance_error_dic_with_acc_mod[dist] = abs(estimate_distance_value_with_acc_mod - eval(dist))
+        
+        distance_error_dic_with_acc_OLS_org[dist] = abs(estimate_distance_value_with_acc_OLS_org - eval(dist))
+        distance_error_dic_with_acc_OLS_mod[dist] = abs(estimate_distance_value_with_acc_OLS_mod - eval(dist))
+        
         max_pos = init_pos[dist] + max_speed[dist] * time_slots[dist] * 0.02
-        max_rssi = rssi_func(k_org, init_pos[dist])
-        min_rssi = rssi_func(k_org, max_pos)
+        # max_rssi = rssi_func(k_org, init_pos[dist])
+        # min_rssi = rssi_func(k_org, max_pos)
+        max_rssi = OLS_func(a_org, c_org, init_pos[dist])
+        min_rssi = OLS_func(a_org, c_org, max_pos)
         bound_org = []
         for rssi in signal_lst_org:
             if rssi >= min_rssi and rssi <= max_rssi:
                 bound_org.append(rssi)
-        max_rssi_mod = rssi_func(k_mod, init_pos[dist])
-        min_rssi_mod = rssi_func(k_mod, max_pos)
+        max_rssi_mod = OLS_func(a_mod, c_mod, init_pos[dist])
+        min_rssi_mod = OLS_func(a_mod, c_mod, max_pos)
         bound_mod = []
         for rssi in signal_lst_mod:
             if rssi >= min_rssi_mod and rssi <= max_rssi_mod:
@@ -191,21 +235,36 @@ if __name__ == "__main__":
     error_lst_org.sort()
     error_lst_with_acc_mod.sort()
     error_lst_with_acc_org.sort()
+    error_lst_OLS_mod.sort()
+    error_lst_OLS_org.sort()
+    error_lst_with_acc_OLS_mod.sort()
+    error_lst_with_acc_OLS_org.sort()
+    error_lst_with_only_acc.sort()
     cdf_lst = [x / (len(error_lst_org)) for x in range(len(error_lst_org) + 1)]
     dis_list = [eval(x) for x in dis_acc.keys()]
     error_dis_lst_org = [distance_error_dic_org[x] for x in dis_acc.keys()]
     error_dis_lst_mod = [distance_error_dic_mod[x] for x in dis_acc.keys()]
     error_dis_lst_with_acc_org = [distance_error_dic_with_acc_org[x] for x in dis_acc.keys()]
     error_dis_lst_with_acc_mod = [distance_error_dic_with_acc_mod[x] for x in dis_acc.keys()]
+    
+    error_dis_lst_OLS_org = [distance_error_dic_OLS_org[x] for x in dis_acc.keys()]
+    error_dis_lst_OLS_mod = [distance_error_dic_OLS_mod[x] for x in dis_acc.keys()]
+    error_dis_lst_with_acc_OLS_org = [distance_error_dic_with_acc_OLS_org[x] for x in dis_acc.keys()]
+    error_dis_lst_with_acc_OLS_mod = [distance_error_dic_with_acc_OLS_mod[x] for x in dis_acc.keys()]
     error_lst_org.insert(0, 0)
     error_lst_mod.insert(0, 0)
     error_lst_with_acc_org.insert(0, 0)
     error_lst_with_acc_mod.insert(0, 0)
-    print(error_dis_lst_org)
-    print(error_dis_lst_mod)
+    error_lst_OLS_org.insert(0, 0)
+    error_lst_OLS_mod.insert(0, 0)
+    error_lst_with_acc_OLS_org.insert(0, 0)
+    error_lst_with_acc_OLS_mod.insert(0, 0)
+    error_lst_with_only_acc.insert(0, 0)
     plt.figure(figsize=FIG_SIZE, dpi=DPI)
-    plt.scatter(x=dis_list, y=error_dis_lst_org, label='Base', marker='>', s=MARKER_SIZE)
-    plt.scatter(x=dis_list, y=error_dis_lst_mod, label='50%', marker='o', s=MARKER_SIZE)
+    # plt.scatter(x=dis_list, y=error_dis_lst_org, label='Base', marker='>', s=MARKER_SIZE)
+    # plt.scatter(x=dis_list, y=error_dis_lst_mod, label='50%', marker='o', s=MARKER_SIZE)
+    plt.scatter(x=dis_list, y=error_dis_lst_OLS_org, label='Base + OLS', marker='>', s=MARKER_SIZE)
+    plt.scatter(x=dis_list, y=error_dis_lst_OLS_mod, label='50% + OLS', marker='o', s=MARKER_SIZE)
     plt.xlabel('Distance (m)', fontsize=LEGEND_FONT_SIZE)
     plt.ylabel('Error (m)', fontsize=LEGEND_FONT_SIZE)
     plt.grid()
@@ -218,10 +277,14 @@ if __name__ == "__main__":
     
     
     plt.figure(figsize=FIG_SIZE, dpi=DPI)
-    plt.scatter(x=dis_list, y=error_dis_lst_org, label='Base', marker='>', s=MARKER_SIZE)
-    plt.scatter(x=dis_list, y=error_dis_lst_mod, label='50%', marker='o', s=MARKER_SIZE)
-    plt.scatter(x=dis_list, y=error_dis_lst_with_acc_org, label='Base + acc', marker='s', s=MARKER_SIZE)
-    plt.scatter(x=dis_list, y=error_dis_lst_with_acc_mod, label='50% + acc', marker='8', s=MARKER_SIZE)
+    # plt.scatter(x=dis_list, y=error_dis_lst_org, label='Base', marker='>', s=MARKER_SIZE)
+    # plt.scatter(x=dis_list, y=error_dis_lst_mod, label='50%', marker='o', s=MARKER_SIZE)
+    # plt.scatter(x=dis_list, y=error_dis_lst_with_acc_org, label='Base + acc', marker='s', s=MARKER_SIZE)
+    # plt.scatter(x=dis_list, y=error_dis_lst_with_acc_mod, label='50% + acc', marker='8', s=MARKER_SIZE)
+    plt.scatter(x=dis_list, y=error_dis_lst_OLS_org, label='Base + OLS', marker='>', s=MARKER_SIZE)
+    plt.scatter(x=dis_list, y=error_dis_lst_OLS_mod, label='50% + OLS', marker='o', s=MARKER_SIZE)
+    plt.scatter(x=dis_list, y=error_dis_lst_with_acc_OLS_org, label='Base + acc + OLS', marker='s', s=MARKER_SIZE)
+    plt.scatter(x=dis_list, y=error_dis_lst_with_acc_OLS_mod, label='50% + acc + OLS', marker='8', s=MARKER_SIZE)
     plt.xlabel('Distance (m)', fontsize=LEGEND_FONT_SIZE)
     plt.ylabel('Error (m)', fontsize=LEGEND_FONT_SIZE)
     plt.grid()
@@ -233,10 +296,15 @@ if __name__ == "__main__":
     plt.savefig('error_dis_with_acc.pdf')
     
     plt.figure(figsize=FIG_SIZE, dpi=DPI)
-    plt.plot(error_lst_org, cdf_lst, label='Base', linewidth=LINE_WIDTH)
-    plt.plot(error_lst_mod, cdf_lst, label='50%', linewidth=LINE_WIDTH)
-    plt.plot(error_lst_with_acc_org, cdf_lst, label='Base + acc', linewidth=LINE_WIDTH)
-    plt.plot(error_lst_with_acc_mod, cdf_lst, label='50% + acc', linewidth=LINE_WIDTH)
+    # plt.plot(error_lst_org, cdf_lst, label='Base + Free Space', linewidth=LINE_WIDTH)
+    # plt.plot(error_lst_mod, cdf_lst, label='50% + Free Space', linewidth=LINE_WIDTH)
+    # plt.plot(error_lst_with_acc_org, cdf_lst, label='Base + acc + Free Space', linewidth=LINE_WIDTH)
+    # plt.plot(error_lst_with_acc_mod, cdf_lst, label='50% + acc + Free Space', linewidth=LINE_WIDTH)
+    plt.plot(error_lst_OLS_org, cdf_lst, label='Base + OLS', linewidth=LINE_WIDTH)
+    plt.plot(error_lst_OLS_mod, cdf_lst, label='50% + OLS', linewidth=LINE_WIDTH)
+    plt.plot(error_lst_with_acc_OLS_org, cdf_lst, label='Base + acc + OLS', linewidth=LINE_WIDTH)
+    plt.plot(error_lst_with_acc_OLS_mod, cdf_lst, label='50% + acc + OLS', linewidth=LINE_WIDTH)
+    plt.plot(error_lst_with_only_acc, cdf_lst, label='acc', linewidth=LINE_WIDTH)
     plt.xlabel('Error (m)', fontsize=LEGEND_FONT_SIZE)
     plt.ylabel('CDF', fontsize=LEGEND_FONT_SIZE)
     plt.grid()
@@ -247,4 +315,26 @@ if __name__ == "__main__":
     plt.yticks(fontsize=TICKS_FONT_SIZE)
     plt.savefig('cdf.png')
     plt.savefig('cdf.pdf')
+    
+    
+    plt.figure(figsize=FIG_SIZE, dpi=DPI)
+    plt.plot(error_lst_org, cdf_lst, label='Base + Free Space', linewidth=LINE_WIDTH)
+    plt.plot(error_lst_mod, cdf_lst, label='50% + Free Space', linewidth=LINE_WIDTH)
+    # plt.plot(error_lst_with_acc_org, cdf_lst, label='Base + acc + Free Space', linewidth=LINE_WIDTH)
+    # plt.plot(error_lst_with_acc_mod, cdf_lst, label='50% + acc + Free Space', linewidth=LINE_WIDTH)
+    plt.plot(error_lst_OLS_org, cdf_lst, label='Base + OLS', linewidth=LINE_WIDTH)
+    plt.plot(error_lst_OLS_mod, cdf_lst, label='50% + OLS', linewidth=LINE_WIDTH)
+    # plt.plot(error_lst_with_acc_OLS_org, cdf_lst, label='Base + acc + OLS', linewidth=LINE_WIDTH)
+    # plt.plot(error_lst_with_acc_OLS_mod, cdf_lst, label='50% + acc + OLS', linewidth=LINE_WIDTH)
+    # plt.plot(error_lst_with_only_acc, cdf_lst, label='acc', linewidth=LINE_WIDTH)
+    plt.xlabel('Error (m)', fontsize=LEGEND_FONT_SIZE)
+    plt.ylabel('CDF', fontsize=LEGEND_FONT_SIZE)
+    plt.grid()
+    plt.ylim((0, 1))
+    plt.xlim((0, 4))
+    plt.legend(loc="best", fontsize=LEGEND_FONT_SIZE)
+    plt.xticks(fontsize=TICKS_FONT_SIZE)
+    plt.yticks(fontsize=TICKS_FONT_SIZE)
+    plt.savefig('compare.png')
+    plt.savefig('compare.pdf')
         
