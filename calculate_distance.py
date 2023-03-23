@@ -59,6 +59,8 @@ if __name__ == "__main__":
     error_lst_with_acc_mod = []
     error_lst_with_acc_OLS_org = []
     error_lst_with_acc_OLS_mod = []
+    error_lst_OLS_bound_org = []
+    error_lst_OLS_bound_mod = []
     error_lst_with_only_acc = []
     distance_error_dic_org = {}
     distance_error_dic_mod = {}
@@ -66,6 +68,8 @@ if __name__ == "__main__":
     distance_error_dic_with_acc_mod = {}
     distance_error_dic_OLS_org = {}
     distance_error_dic_OLS_mod = {}
+    distance_error_dic_OLS_bound_org = {}
+    distance_error_dic_OLS_bound_mod = {}
     distance_error_dic_with_acc_OLS_org = {}
     distance_error_dic_with_acc_OLS_mod = {}
     
@@ -228,8 +232,19 @@ if __name__ == "__main__":
         for rssi in signal_lst_mod:
             if rssi >= min_rssi_mod and rssi <= max_rssi_mod:
                 bound_mod.append(rssi)
+        
         print(f"Location : {eval(dist):.3f}, Bounded len: {len(bound_mod)}, Original len: {len(signal_lst_mod)}, Estimate Pos: {estimate_distance_value_mod:.3f}, Error: {distance_error_dic_mod[dist]:.3f}, Max: {max_rssi_mod}, Min: {min_rssi_mod}")
         print(f"Location : {eval(dist):.3f}, Bounded len: {len(bound_org)}, Original len: {len(signal_lst_org)}, Estimate Pos: {estimate_distance_value_org:.3f}, Error: {distance_error_dic_org[dist]:.3f}, Max: {max_rssi}, Min: {min_rssi}")
+        
+        
+        estimate_distance_value_OLS_bound_org = rssi_to_dis_OLS(a_org, c_org, sum(bound_org) / len(bound_org))
+        estimate_distance_value_OLS_bound_mod = rssi_to_dis_OLS(a_mod, c_mod, sum(bound_mod) / len(bound_mod))
+        
+        distance_error_dic_OLS_bound_mod[dist] = abs(estimate_distance_value_OLS_bound_mod - eval(dist))
+        error_lst_OLS_bound_mod.append(abs(estimate_distance_value_OLS_bound_mod - eval(dist)))
+        distance_error_dic_OLS_bound_org[dist] = abs(estimate_distance_value_OLS_bound_org - eval(dist))
+        error_lst_OLS_bound_org.append(abs(estimate_distance_value_OLS_bound_org - eval(dist)))
+        
         
     error_lst_mod.sort()
     error_lst_org.sort()
@@ -240,6 +255,8 @@ if __name__ == "__main__":
     error_lst_with_acc_OLS_mod.sort()
     error_lst_with_acc_OLS_org.sort()
     error_lst_with_only_acc.sort()
+    error_lst_OLS_bound_mod.sort()
+    error_lst_OLS_bound_org.sort()
     cdf_lst = [x / (len(error_lst_org)) for x in range(len(error_lst_org) + 1)]
     dis_list = [eval(x) for x in dis_acc.keys()]
     error_dis_lst_org = [distance_error_dic_org[x] for x in dis_acc.keys()]
@@ -247,6 +264,8 @@ if __name__ == "__main__":
     error_dis_lst_with_acc_org = [distance_error_dic_with_acc_org[x] for x in dis_acc.keys()]
     error_dis_lst_with_acc_mod = [distance_error_dic_with_acc_mod[x] for x in dis_acc.keys()]
     
+    error_dis_lst_OLS_bound_org = [distance_error_dic_OLS_bound_org[x] for x in dis_acc.keys()]
+    error_dis_lst_OLS_bound_mod = [distance_error_dic_OLS_bound_mod[x] for x in dis_acc.keys()]
     error_dis_lst_OLS_org = [distance_error_dic_OLS_org[x] for x in dis_acc.keys()]
     error_dis_lst_OLS_mod = [distance_error_dic_OLS_mod[x] for x in dis_acc.keys()]
     error_dis_lst_with_acc_OLS_org = [distance_error_dic_with_acc_OLS_org[x] for x in dis_acc.keys()]
@@ -257,12 +276,12 @@ if __name__ == "__main__":
     error_lst_with_acc_mod.insert(0, 0)
     error_lst_OLS_org.insert(0, 0)
     error_lst_OLS_mod.insert(0, 0)
+    error_lst_OLS_bound_org.insert(0, 0)
+    error_lst_OLS_bound_mod.insert(0, 0)
     error_lst_with_acc_OLS_org.insert(0, 0)
     error_lst_with_acc_OLS_mod.insert(0, 0)
     error_lst_with_only_acc.insert(0, 0)
     plt.figure(figsize=FIG_SIZE, dpi=DPI)
-    # plt.scatter(x=dis_list, y=error_dis_lst_org, label='Base', marker='>', s=MARKER_SIZE)
-    # plt.scatter(x=dis_list, y=error_dis_lst_mod, label='50%', marker='o', s=MARKER_SIZE)
     plt.scatter(x=dis_list, y=error_dis_lst_OLS_org, label='Base + OLS', marker='>', s=MARKER_SIZE)
     plt.scatter(x=dis_list, y=error_dis_lst_OLS_mod, label='50% + OLS', marker='o', s=MARKER_SIZE)
     plt.xlabel('Distance (m)', fontsize=LEGEND_FONT_SIZE)
@@ -277,10 +296,6 @@ if __name__ == "__main__":
     
     
     plt.figure(figsize=FIG_SIZE, dpi=DPI)
-    # plt.scatter(x=dis_list, y=error_dis_lst_org, label='Base', marker='>', s=MARKER_SIZE)
-    # plt.scatter(x=dis_list, y=error_dis_lst_mod, label='50%', marker='o', s=MARKER_SIZE)
-    # plt.scatter(x=dis_list, y=error_dis_lst_with_acc_org, label='Base + acc', marker='s', s=MARKER_SIZE)
-    # plt.scatter(x=dis_list, y=error_dis_lst_with_acc_mod, label='50% + acc', marker='8', s=MARKER_SIZE)
     plt.scatter(x=dis_list, y=error_dis_lst_OLS_org, label='Base + OLS', marker='>', s=MARKER_SIZE)
     plt.scatter(x=dis_list, y=error_dis_lst_OLS_mod, label='50% + OLS', marker='o', s=MARKER_SIZE)
     plt.scatter(x=dis_list, y=error_dis_lst_with_acc_OLS_org, label='Base + acc + OLS', marker='s', s=MARKER_SIZE)
@@ -296,10 +311,21 @@ if __name__ == "__main__":
     plt.savefig('error_dis_with_acc.pdf')
     
     plt.figure(figsize=FIG_SIZE, dpi=DPI)
-    # plt.plot(error_lst_org, cdf_lst, label='Base + Free Space', linewidth=LINE_WIDTH)
-    # plt.plot(error_lst_mod, cdf_lst, label='50% + Free Space', linewidth=LINE_WIDTH)
-    # plt.plot(error_lst_with_acc_org, cdf_lst, label='Base + acc + Free Space', linewidth=LINE_WIDTH)
-    # plt.plot(error_lst_with_acc_mod, cdf_lst, label='50% + acc + Free Space', linewidth=LINE_WIDTH)
+    plt.scatter(x=dis_list, y=error_dis_lst_OLS_org, label='Base + OLS', marker='>', s=MARKER_SIZE)
+    plt.scatter(x=dis_list, y=error_dis_lst_OLS_mod, label='50% + OLS', marker='o', s=MARKER_SIZE)
+    plt.scatter(x=dis_list, y=error_dis_lst_OLS_bound_org, label='Base + OLS + bound', marker='s', s=MARKER_SIZE)
+    plt.scatter(x=dis_list, y=error_dis_lst_OLS_bound_mod, label='50% + OLS + bound', marker='8', s=MARKER_SIZE)
+    plt.xlabel('Distance (m)', fontsize=LEGEND_FONT_SIZE)
+    plt.ylabel('Error (m)', fontsize=LEGEND_FONT_SIZE)
+    plt.grid()
+    plt.ylim(bottom=0)
+    plt.legend(loc="best", fontsize=LEGEND_FONT_SIZE)
+    plt.xticks(fontsize=TICKS_FONT_SIZE)
+    plt.yticks(fontsize=TICKS_FONT_SIZE)
+    plt.savefig('error_dis_with_bound.png')
+    plt.savefig('error_dis_with_bound.pdf')
+    
+    plt.figure(figsize=FIG_SIZE, dpi=DPI)
     plt.plot(error_lst_OLS_org, cdf_lst, label='Base + OLS', linewidth=LINE_WIDTH)
     plt.plot(error_lst_OLS_mod, cdf_lst, label='50% + OLS', linewidth=LINE_WIDTH)
     plt.plot(error_lst_with_acc_OLS_org, cdf_lst, label='Base + acc + OLS', linewidth=LINE_WIDTH)
@@ -320,13 +346,8 @@ if __name__ == "__main__":
     plt.figure(figsize=FIG_SIZE, dpi=DPI)
     plt.plot(error_lst_org, cdf_lst, label='Base + Free Space', linewidth=LINE_WIDTH)
     plt.plot(error_lst_mod, cdf_lst, label='50% + Free Space', linewidth=LINE_WIDTH)
-    # plt.plot(error_lst_with_acc_org, cdf_lst, label='Base + acc + Free Space', linewidth=LINE_WIDTH)
-    # plt.plot(error_lst_with_acc_mod, cdf_lst, label='50% + acc + Free Space', linewidth=LINE_WIDTH)
     plt.plot(error_lst_OLS_org, cdf_lst, label='Base + OLS', linewidth=LINE_WIDTH)
     plt.plot(error_lst_OLS_mod, cdf_lst, label='50% + OLS', linewidth=LINE_WIDTH)
-    # plt.plot(error_lst_with_acc_OLS_org, cdf_lst, label='Base + acc + OLS', linewidth=LINE_WIDTH)
-    # plt.plot(error_lst_with_acc_OLS_mod, cdf_lst, label='50% + acc + OLS', linewidth=LINE_WIDTH)
-    # plt.plot(error_lst_with_only_acc, cdf_lst, label='acc', linewidth=LINE_WIDTH)
     plt.xlabel('Error (m)', fontsize=LEGEND_FONT_SIZE)
     plt.ylabel('CDF', fontsize=LEGEND_FONT_SIZE)
     plt.grid()
@@ -337,4 +358,19 @@ if __name__ == "__main__":
     plt.yticks(fontsize=TICKS_FONT_SIZE)
     plt.savefig('compare.png')
     plt.savefig('compare.pdf')
-        
+    
+    plt.figure(figsize=FIG_SIZE, dpi=DPI)
+    plt.plot(error_lst_OLS_org, cdf_lst, label='Base + OLS', linewidth=LINE_WIDTH)
+    plt.plot(error_lst_OLS_mod, cdf_lst, label='50% + OLS', linewidth=LINE_WIDTH)
+    plt.plot(error_lst_OLS_bound_org, cdf_lst, label='Base + OLS + bound', linewidth=LINE_WIDTH)
+    plt.plot(error_lst_OLS_bound_mod, cdf_lst, label='50% + OLS + bound', linewidth=LINE_WIDTH)
+    plt.xlabel('Error (m)', fontsize=LEGEND_FONT_SIZE)
+    plt.ylabel('CDF', fontsize=LEGEND_FONT_SIZE)
+    plt.grid()
+    plt.ylim((0, 1))
+    plt.xlim((0, 4))
+    plt.legend(loc="best", fontsize=LEGEND_FONT_SIZE)
+    plt.xticks(fontsize=TICKS_FONT_SIZE)
+    plt.yticks(fontsize=TICKS_FONT_SIZE)
+    plt.savefig('cdf_bound.png')
+    plt.savefig('cdf_bound.pdf')
