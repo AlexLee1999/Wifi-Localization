@@ -257,6 +257,19 @@ if __name__ == "__main__":
     error_lst_with_only_acc.sort()
     error_lst_OLS_bound_mod.sort()
     error_lst_OLS_bound_org.sort()
+    avg_error_OLS_org = sum(error_lst_OLS_org) / len(error_lst_OLS_org)
+    avg_error_OLS_mod = sum(error_lst_OLS_mod) / len(error_lst_OLS_mod)
+    avg_error_with_acc_OLS_org = sum(error_lst_with_acc_OLS_org) / len(error_lst_with_acc_OLS_org)
+    avg_error_with_acc_OLS_mod = sum(error_lst_with_acc_OLS_mod) / len(error_lst_with_acc_OLS_mod)
+    
+    avg_error_OLS_bound_org = sum(error_lst_OLS_bound_org) / len(error_lst_OLS_bound_org)
+    avg_error_OLS_bound_mod = sum(error_lst_OLS_bound_mod) / len(error_lst_OLS_bound_mod)
+    print(f"Avg error Base:        {avg_error_OLS_org:.3f}, Avg error 50%    : {avg_error_OLS_mod:.3f}")
+    print(f"Avg error acc Base:    {avg_error_with_acc_OLS_org:.3f}, Avg error acc 50%: {avg_error_with_acc_OLS_mod:.3f}, Reduce Base : {1 - avg_error_with_acc_OLS_org / avg_error_OLS_org:.3f}, Reduce 50% : {1 - avg_error_with_acc_OLS_mod / avg_error_OLS_mod:.3f}")
+    print(f"Avg error filter Base: {avg_error_OLS_bound_org:.3f}, Avg error filter 50%: {avg_error_OLS_bound_mod:.3f}, Reduce Base : {1 - avg_error_OLS_bound_org / avg_error_OLS_org:.3f}, Reduce 50% : {1 - avg_error_OLS_bound_mod / avg_error_OLS_mod:.3f}")
+    
+    
+    
     cdf_lst = [x / (len(error_lst_org)) for x in range(len(error_lst_org) + 1)]
     dis_list = [eval(x) for x in dis_acc.keys()]
     error_dis_lst_org = [distance_error_dic_org[x] for x in dis_acc.keys()]
